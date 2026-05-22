@@ -1,0 +1,7 @@
+{
+  "host": "smtp.gmail.com",
+  "port": "587",
+  "user": "you@gmail.com",
+  "pass": "your-app-password",
+  "from": "you@gmail.com"
+}
