@@ -1,4 +1,4 @@
-// smtp-send — Minimal SMTP email sender designed for AI agents.
+// mail-send — Minimal SMTP email sender designed for AI agents.
 //
 // Zero external dependencies. Compiles to a single static binary.
 // Supports JSON output, explicit exit codes, stdin pipe, attachments.
@@ -23,9 +23,9 @@ import (
 
 // Default config paths, searched in order.
 var configPaths = []string{
-	"smtp-send.json",
-	"~/.config/smtp-send/config.json",
-	"~/.smtp-send.json",
+	"mail-send.json",
+	"~/.config/mail-send/config.json",
+	"~/.mail-send.json",
 }
 
 const version = "0.1.0"
@@ -84,7 +84,7 @@ func main() {
 		os.Exit(0)
 	}
 	if args[0] == "--version" || args[0] == "-v" {
-		fmt.Println("smtp-send " + version)
+		fmt.Println("mail-send " + version)
 		os.Exit(0)
 	}
 
@@ -277,7 +277,7 @@ func loadSmtpConfig(customPath string) (*SmtpConfig, string, error) {
 }
 
 func initConfig() {
-	target := expandPath("~/.config/smtp-send/config.json")
+	target := expandPath("~/.config/mail-send/config.json")
 	dir := filepath.Dir(target)
 
 	if _, err := os.Stat(target); err == nil {
@@ -547,11 +547,11 @@ func fail(isJSON bool, msg string, code int) {
 }
 
 func printHelp() {
-	fmt.Print(`smtp-send — Minimal SMTP sender for AI agents (v` + version + `)
+	fmt.Print(`mail-send — Minimal SMTP sender for AI agents (v` + version + `)
 
 USAGE
-  smtp-send --to <emails> --subject <text> --body <text|-> [options]
-  smtp-send init                              generate config template
+  mail-send --to <emails> --subject <text> --body <text|-> [options]
+  mail-send init                              generate config template
 
 REQUIRED
   --to <emails>         Recipients (comma-separated)
@@ -569,12 +569,12 @@ SMTP CONFIG  (priority: flags > config file > env vars)
 
 CONFIG FILE
   JSON format, searched in order:
-    1. ./smtp-send.json
-    2. ~/.config/smtp-send/config.json
-    3. ~/.smtp-send.json
+    1. ./mail-send.json
+    2. ~/.config/mail-send/config.json
+    3. ~/.mail-send.json
 
   Generate a template:
-    smtp-send init
+    mail-send init
 
   Example config:
     {
@@ -601,21 +601,21 @@ EXIT CODES
 
 EXAMPLES
   # First time: generate config
-  smtp-send init
+  mail-send init
 
   # After editing config, send is simple:
-  smtp-send --to user@example.com --subject "Hi" --body "Hello"
+  mail-send --to user@example.com --subject "Hi" --body "Hello"
 
   # Piped body + JSON output
-  echo "Disk 95% full" | smtp-send \
+  echo "Disk 95% full" | mail-send \
     --to ops@example.com --subject "Alert" --body - --json
 
   # Override config with flag
-  smtp-send --to a@b.com --subject "Test" --body "ok" \
+  mail-send --to a@b.com --subject "Test" --body "ok" \
     --smtp-host smtp.other.com
 
   # Custom config file
-  smtp-send --to a@b.com --subject "Hi" --body "Hello" \
+  mail-send --to a@b.com --subject "Hi" --body "Hello" \
     --config /path/to/smtp.json
 `)
 }

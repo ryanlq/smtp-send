@@ -11,8 +11,14 @@
 
 ```bash
 cd mail
-go build -ldflags="-s -w" -o smtp-send .
-ln -sf $(pwd)/smtp-send ~/.local/bin/mail-send
+go build -ldflags="-s -w" -o mail-send .
+install -m 755 mail-send ~/.local/bin/mail-send
+```
+
+或一键安装（含 Claude Code skill）：
+
+```bash
+./install.sh
 ```
 
 ## 快速开始
@@ -23,7 +29,7 @@ ln -sf $(pwd)/smtp-send ~/.local/bin/mail-send
 mail-send init
 ```
 
-生成 `~/.config/smtp-send/config.json`（权限 0600），编辑填入你的 SMTP 凭据：
+生成 `~/.config/mail-send/config.json`（权限 0600），编辑填入你的 SMTP 凭据：
 
 ```json
 {
@@ -61,9 +67,9 @@ CLI 参数 > 配置文件 > 环境变量
 
 | 路径 | 用途 |
 |------|------|
-| `./smtp-send.json` | 项目目录 |
-| `~/.config/smtp-send/config.json` | 用户全局（推荐） |
-| `~/.smtp-send.json` | 家目录 |
+| `./mail-send.json` | 项目目录 |
+| `~/.config/mail-send/config.json` | 用户全局（推荐） |
+| `~/.mail-send.json` | 家目录 |
 
 用 `--config <path>` 指定自定义配置文件。
 
