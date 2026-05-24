@@ -1,98 +1,73 @@
 ---
 name: mail-send
-description: Send emails via SMTP from the command line. Use when the user asks to send an email, notify someone, mail a report/file, or trigger an email alert. Triggers on keywords like "send email", "mail", "notify by email", "email this", "send a message to". Requires the smtp-send binary installed and SMTP credentials configured.
+description: Send emails via the smtp-send CLI tool. Use when the user asks to send an email, notify someone, mail a report or file, or trigger an email alert. Triggers on "send email", "mail", "notify", "email this", "send a message to", "send attachment".
 ---
 
 # Mail Send
 
-Send emails using `smtp-send`, a zero-dependency CLI tool with JSON output and explicit exit codes.
+Send emails using `smtp-send`. Binary name may also be `mail-send` — both work.
 
-## Prerequisites
+## Usage Patterns
 
-Verify the tool is installed and configured:
-
-```bash
-which smtp-send || which mail-send
-# If missing, build from source:
-cd /path/to/mail && go build -ldflags="-s -w" -o smtp-send .
-
-# Check config exists:
-cat ~/.config/smtp-send/config.json
-# If missing, generate template:
-smtp-send init
-```
-
-The binary may be symlinked as `mail-send` — both names work.
-
-## Send Email
-
-### Basic usage
-
+**Plain text**
 ```bash
 smtp-send --to user@example.com --subject "Hello" --body "Hi there"
 ```
 
-### Pipe body from command output
-
+**Pipe command output as body** — use `--body -`
 ```bash
 df -h / | smtp-send --to ops@example.com --subject "Disk report" --body -
 ```
 
-Use `--body -` to read from stdin. Ideal for sending command output, logs, or generated content.
-
-### HTML email
-
+**HTML**
 ```bash
-smtp-send --to team@example.com --subject "Report" --body "<h1>Q1 Report</h1><p>Revenue up 12%</p>" --html
+smtp-send --to team@example.com --subject "Report" \
+  --body "<h1>Q1 Report</h1><p>Revenue up 12%</p>" --html
 ```
 
-### With attachment
-
+**Attachment** — repeat `--attach` for multiple files
 ```bash
-smtp-send --to user@example.com --subject "Logs" --body "see attached" --attach /var/log/app.log
+smtp-send --to user@example.com --subject "Logs" \
+  --body "see attached" --attach /var/log/app.log
 ```
 
-Multiple attachments: repeat `--attach`.
-
-### Multiple recipients and CC
-
+**Multiple recipients + CC**
 ```bash
-smtp-send --to alice@ex.com,bob@ex.com --cc boss@ex.com --subject "Update" --body "Done"
+smtp-send --to alice@ex.com,bob@ex.com --cc boss@ex.com \
+  --subject "Update" --body "Done"
 ```
 
-### JSON output (for programmatic use)
-
-Always add `--json` when you need to parse the result:
-
+**JSON output** — add `--json` for programmatic result parsing
 ```bash
 smtp-send --to user@example.com --subject "Alert" --body "Disk 95%" --json
-# Success: {"success":true,"recipients":["user@example.com"],"timestamp":"..."}
-# Failure: {"success":false,"error":"auth: 535 ...","exit_code":4}
+# OK:   {"success":true,"recipients":["user@example.com"],"timestamp":"..."}
+# FAIL: {"success":false,"error":"auth: 535 ...","exit_code":4}
+```
+
+**Override SMTP config per command**
+```bash
+smtp-send --to a@b.com --subject "Hi" --body "ok" \
+  --smtp-host smtp.other.com --smtp-port 587 \
+  --smtp-user me@other.com --smtp-pass secret
 ```
 
 ## Exit Codes
 
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | Sent successfully | Done |
-| 1 | Bad arguments | Fix the command flags |
-| 2 | Missing config | Run `smtp-send init` and edit credentials |
-| 3 | Network/TLS error | Check host, port, connectivity |
-| 4 | Auth failed | Check username/password in config |
-| 5 | Server rejected | Check recipient address, sender permissions |
+| Code | Meaning | Fix |
+|------|---------|-----|
+| 0 | Sent | — |
+| 1 | Bad arguments | Check flags |
+| 2 | Missing config | `smtp-send init` then edit `~/.config/smtp-send/config.json` |
+| 3 | Network / TLS | Check host, port, connectivity |
+| 4 | Auth failed | Check user/password in config |
+| 5 | Server rejected | Check recipient address or sender permissions |
+
+On non-zero exit, read stderr for the error message. With `--json`, parse `exit_code` and `error` fields from stdout.
 
 ## Config Priority
 
-CLI flags > config file > env vars (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`).
+CLI flags > config file > env vars.
 
-Config file search order: `./smtp-send.json` > `~/.config/smtp-send/config.json` > `~/.smtp-send.json`.
+Env vars: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
 
-## Common SMTP Providers
-
-| Provider | host | port | Note |
-|----------|------|------|------|
-| Gmail | smtp.gmail.com | 587 | App-specific password required |
-| Outlook/365 | smtp.office365.com | 587 | |
-| QQ Mail | smtp.qq.com | 587 | Authorization code required |
-| 163 Mail | smtp.163.com | 465 | Implicit TLS |
-| Tencent ExMail | smtp.exmail.qq.com | 465 | |
+Config file search: `./smtp-send.json` > `~/.config/smtp-send/config.json` > `~/.smtp-send.json`. Use `--config <path>` to override.
